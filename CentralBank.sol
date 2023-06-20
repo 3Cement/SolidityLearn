@@ -12,20 +12,23 @@ contract CentralBank {
         owner = msg.sender;
     }
 
+    modifier whitelistedOnly() {
+        require(whitelistedAddrs[msg.sender] == true, "caller is not whitelisted");
+        _;
+    }
+
     function whitelist(address payable addr, bool flag) public {
         require(msg.sender == owner, "caller is not an owner");
         whitelistedAddrs[addr] = flag;
     }
 
-    function deposit() public payable {
-        require(whitelistedAddrs[msg.sender] == true, "caller is not whitelisted");
+    function deposit() public payable whitelistedOnly {
         require(msg.value > 0, "deposit more then zero");
         totalBalance += msg.value;
         balances[msg.sender] += msg.value;
     }
 
-    function withdraw(uint amount) public {
-        require(whitelistedAddrs[msg.sender] == true, "caller is not whitelisted");
+    function withdraw(uint amount) public whitelistedOnly {
         require(balances[msg.sender] >= amount, "insufficient funds");
 
         (bool sent,) = msg.sender.call{value: amount}("");
