@@ -16,4 +16,13 @@ contract CentralBank {
         totalBalance += msg.value;
         balances[msg.sender] += msg.value;
     }
+
+    function withdraw(uint amount) public {
+        require(balances[msg.sender] >= amount, "insufficient funds");
+
+        (bool sent,) = msg.sender.call{value: amount}("");
+        require(sent, "Failed to send Ether");
+        totalBalance -= amount;
+        balances[msg.sender] -= amount;
+    }
 }
