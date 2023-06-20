@@ -3,9 +3,14 @@
 pragma solidity 0.8.18;
 
 contract CentralBank {
-    address private owner = 0x5B38Da6a701c568545dCfcB03FcB875f56beddC4;
+    address private owner;
     uint256 public totalBalance = 1000;
     mapping(address => uint) public balances;
+
+    constructor (uint256 _totalBalance) {
+        owner = msg.sender;
+        totalBalance = _totalBalance;
+    }
 
     function increaseTotalBalance(uint amount) public {
         totalBalance = totalBalance + amount;
