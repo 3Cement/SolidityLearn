@@ -2,15 +2,30 @@
 
 pragma solidity 0.8.18;
 
-contract CentralBank {
-    address private owner;
+contract Ownable {
+    address private _owner;
+
+    constructor () {
+        _owner = msg.sender;
+    }
+
+    modifier onlyOwner() {
+        require(
+            msg.sender == _owner,
+             "caller is not an owner");
+        _;
+    }
+
+    function owner() public view returns(address) {
+        return _owner;
+    }
+
+}
+
+contract CentralBank is Ownable {
     uint256 public totalBalance;
     mapping(address => uint) private balances;
     mapping(address => bool) public whitelistedAddrs;
-
-    constructor () {
-        owner = msg.sender;
-    }
 
     modifier whitelistedOnly() {
         require(whitelistedAddrs[msg.sender] == true, "caller is not whitelisted");
@@ -21,8 +36,7 @@ contract CentralBank {
         return balances[addr];
     }
 
-    function whitelist(address payable addr, bool flag) public {
-        require(msg.sender == owner, "caller is not an owner");
+    function whitelist(address payable addr, bool flag) public onlyOwner {
         whitelistedAddrs[addr] = flag;
     }
 
