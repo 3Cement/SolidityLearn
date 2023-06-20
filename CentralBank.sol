@@ -5,7 +5,7 @@ pragma solidity 0.8.18;
 contract CentralBank {
     address private owner;
     uint256 public totalBalance;
-    mapping(address => uint) public balances;
+    mapping(address => uint) private balances;
     mapping(address => bool) public whitelistedAddrs;
 
     constructor () {
@@ -15,6 +15,10 @@ contract CentralBank {
     modifier whitelistedOnly() {
         require(whitelistedAddrs[msg.sender] == true, "caller is not whitelisted");
         _;
+    }
+
+    function balanceOf(address addr) public view returns(uint) {
+        return balances[addr];
     }
 
     function whitelist(address payable addr, bool flag) public {
