@@ -6,16 +6,18 @@ import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contr
 
 contract CentralBank is Ownable(msg.sender) {
     uint256 public totalBalance;
-    
-    mapping(address => uint) private balances;
+
+    mapping(address => uint256) private balances;
     mapping(address => bool) public whitelistedAddrs;
+
+    event NewDepostit(address indexed wallet, uint256 amount);
 
     modifier whitelistedOnly() {
         require(whitelistedAddrs[msg.sender] == true, "caller is not whitelisted");
         _;
     }
 
-    function balanceOf(address addr) public view returns(uint) {
+    function balanceOf(address addr) public view returns(uint256) {
         return balances[addr];
     }
 
@@ -27,10 +29,11 @@ contract CentralBank is Ownable(msg.sender) {
         require(msg.value > 0, "deposit more then zero");
         totalBalance += msg.value;
         balances[msg.sender] += msg.value;
+        emit NewDepostit(msg.sender, msg.value);
     }
 
-    function withdraw(uint amount) public whitelistedOnly {
-        require(balances[msg.sender] >= amount, "insufficient funds");
+    function withdraw(uint256 amount) public whitelistedOnly {
+        require(balances[msg.sender] >= amount, "insufficienttt funds");
 
         (bool sent,) = msg.sender.call{value: amount}("");
         require(sent, "Failed to send Ether");
