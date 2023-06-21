@@ -1,29 +1,12 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.18;
+pragma solidity 0.8.19;
 
-contract Ownable {
-    address private _owner;
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol";
 
-    constructor () {
-        _owner = msg.sender;
-    }
-
-    modifier onlyOwner() {
-        require(
-            msg.sender == _owner,
-             "caller is not an owner");
-        _;
-    }
-
-    function owner() public view returns(address) {
-        return _owner;
-    }
-
-}
-
-contract CentralBank is Ownable {
+contract CentralBank is Ownable(msg.sender) {
     uint256 public totalBalance;
+    
     mapping(address => uint) private balances;
     mapping(address => bool) public whitelistedAddrs;
 
