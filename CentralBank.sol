@@ -23,7 +23,7 @@ contract CentralBank is Ownable(msg.sender) {
         bool takenBack;
     }
 
-    DepositInfo public lastDepositInfo;
+    DepositInfo [] public deposits; 
 
     event NewDeposit(address indexed wallet, uint256 amount);
 
@@ -50,11 +50,13 @@ contract CentralBank is Ownable(msg.sender) {
         balances[msg.sender] += msg.value;
         emit NewDeposit(msg.sender, msg.value);
         lastDepositAt[msg.sender] = block.timestamp;
-        lastDepositInfo = DepositInfo(msg.sender, msg.value, block.timestamp, false);
+        deposits.push(
+            DepositInfo(msg.sender, msg.value, block.timestamp, false)
+        );
     }
 
     function lastDepositor() public view returns(address) {
-        return lastDepositInfo.depositor;
+        return deposits[deposits.length - 1].depositor;
     }
 
     function withdraw(uint256 amount) public whitelistedOnly {
