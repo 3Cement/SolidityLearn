@@ -5,7 +5,7 @@ pragma solidity 0.8.19;
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol";
 
 interface IWhitelister {
-    function istWhitelisted(address _wallet) external view returns (bool);
+    function isWhitelisted(address _wallet) external view returns (bool);
 }
 
 contract CentralBank is Ownable(msg.sender) {
@@ -16,7 +16,16 @@ contract CentralBank is Ownable(msg.sender) {
     mapping(address => uint256) private balances;
     mapping(address => uint256) public lastDepositAt;
 
-    event NewDepostit(address indexed wallet, uint256 amount);
+    struct DepositInfo {
+        address depositor; 
+        uint256 amount;
+        uint256 depositedAt;
+        bool takenBack;
+    }
+
+    DepositInfo public lastDepositInfo;
+
+    event NewDeposit(address indexed wallet, uint256 amount);
 
     constructor(address whitelistRegistryAddr) {
         whitelistRegistry = whitelistRegistryAddr;
@@ -24,7 +33,7 @@ contract CentralBank is Ownable(msg.sender) {
 
     modifier whitelistedOnly() {
         require(
-            IWhitelister(whitelistRegistry).istWhitelisted(msg.sender) == true,
+            IWhitelister(whitelistRegistry).isWhitelisted(msg.sender) == true,
             "caller is not whitelisted"
         );
         _;
@@ -39,8 +48,13 @@ contract CentralBank is Ownable(msg.sender) {
 
         totalBalance += msg.value;
         balances[msg.sender] += msg.value;
-        emit NewDepostit(msg.sender, msg.value);
+        emit NewDeposit(msg.sender, msg.value);
         lastDepositAt[msg.sender] = block.timestamp;
+        lastDepositInfo = DepositInfo(msg.sender, msg.value, block.timestamp, false);
+    }
+
+    function lastDepositor() public view returns(address) {
+        return lastDepositInfo.depositor;
     }
 
     function withdraw(uint256 amount) public whitelistedOnly {
