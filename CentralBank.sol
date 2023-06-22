@@ -9,6 +9,7 @@ contract CentralBank is Ownable(msg.sender) {
 
     mapping(address => uint256) private balances;
     mapping(address => bool) public whitelistedAddrs;
+    mapping(address => uint256) public lastDepositAt;
 
     event NewDepostit(address indexed wallet, uint256 amount);
 
@@ -27,13 +28,16 @@ contract CentralBank is Ownable(msg.sender) {
 
     function deposit() public payable whitelistedOnly {
         require(msg.value > 0, "deposit more then zero");
+        
         totalBalance += msg.value;
         balances[msg.sender] += msg.value;
         emit NewDepostit(msg.sender, msg.value);
+        lastDepositAt[msg.sender] = block.timestamp ;
     }
 
     function withdraw(uint256 amount) public whitelistedOnly {
-        require(balances[msg.sender] >= amount, "insufficienttt funds");
+        require(balances[msg.sender] >= amount, "insufficient funds");
+        require(block.timestamp > lastDepositAt[msg.sender] + 2 minutes, "withdraw not yet possible");
 
         (bool sent,) = msg.sender.call{value: amount}("");
         require(sent, "Failed to send Ether");
