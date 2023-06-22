@@ -4,8 +4,8 @@ pragma solidity 0.8.19;
 
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol";
 
-contract IWhitelister {
-    function istWhitelisted(address _wallet) public view returns(bool) {}
+interface IWhitelister {
+    function istWhitelisted(address _wallet) external view returns(bool);
 } 
 
 contract CentralBank is Ownable(msg.sender) {
@@ -26,7 +26,7 @@ contract CentralBank is Ownable(msg.sender) {
     function balanceOf(address addr) public view returns(uint256) {
         return balances[addr];
     }
-    
+
     function deposit() public payable whitelistedOnly {
         require(msg.value > 0, "deposit more then zero");
 
