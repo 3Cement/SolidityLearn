@@ -3,6 +3,7 @@
 pragma solidity 0.8.19;
 
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol";
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/cryptography/ECDSA.sol";
 
 interface IWhitelister {
     function isWhitelisted(address _wallet) external view returns (bool);
@@ -15,6 +16,7 @@ contract CentralBank is Ownable(msg.sender) {
 
     mapping(address => uint256) private balances;
     mapping(address => uint256) public lastDepositAt;
+    mapping(uint256 => bool) public usedNonces;
 
     struct DepositInfo {
         address depositor; 
@@ -70,5 +72,35 @@ contract CentralBank is Ownable(msg.sender) {
         require(sent, "Failed to send Ether");
         totalBalance -= amount;
         balances[msg.sender] -= amount;
+    }
+
+    function getVoucherHash(address recipient, uint256 amount, uint256 nonce) public pure returns (bytes32) {
+        return keccak256(abi.encodePacked(recipient, amount, nonce));
+    }
+
+    function isVoucherValid(address receiver, uint256 amount, uint256 nonce, bytes calldata signature) public pure returns(bool) {
+        bytes32 messageHash = getVoucherHash(receiver, amount, nonce);
+        address signer = xD....;
+        address voucherSigner = ECDSA.recover(
+            ECDSA.toEthSignedMessageHash(messageHash),
+            signature
+        );
+        return voucherSigner == signer;
+    }
+
+    function useVoucher(address receiver, uint256 amount, uint256 nonce, bytes calldata signature) public {
+        require(usedNonces[nonce] == false, "nonce was used before");
+        require(
+            isVoucherValid(receiver, amount, nonce, signature),
+            "voucher invalid"
+        );
+        usedNonces[nonce] = true;
+        totalBalance += amount;
+        balances[receiver] += amount;
+        emit NewDeposit(receiver, amount);
+        lastDepositAt[receiver] = block.timestamp;
+        deposits.push(
+            DepositInfo(receiver, amount, block.timestamp, false)
+        );
     }
 }
