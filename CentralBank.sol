@@ -4,6 +4,7 @@ pragma solidity 0.8.19;
 
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/cryptography/ECDSA.sol";
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/cryptography/MerkleProof.sol";
 
 interface IWhitelister {
     function isWhitelisted(address _wallet) external view returns (bool);
@@ -80,7 +81,7 @@ contract CentralBank is Ownable(msg.sender) {
 
     function isVoucherValid(address receiver, uint256 amount, uint256 nonce, bytes calldata signature) public pure returns(bool) {
         bytes32 messageHash = getVoucherHash(receiver, amount, nonce);
-        address signer = xD....;
+        address signer = 0xdBBc3C70044863228803889983a646C647ee88Da;
         address voucherSigner = ECDSA.recover(
             ECDSA.toEthSignedMessageHash(messageHash),
             signature
@@ -102,5 +103,11 @@ contract CentralBank is Ownable(msg.sender) {
         deposits.push(
             DepositInfo(receiver, amount, block.timestamp, false)
         );
+    }
+
+    function useMerkleVoucher(address receiver, uint256 amount, uint256 nonce, bytes32 [] calldata proof) public pure returns (bool) {
+        bytes32 root = 0xdecd385d3e9202ccb9615e826abf1b5d7d025d1e337c192858271b26ce1f6ed2;
+        bytes32 leaf = keccak256(bytes.concat(keccak256(abi.encode(receiver, amount, nonce))));
+        return MerkleProof.verify(proof, root, leaf);
     }
 }
